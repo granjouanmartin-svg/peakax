@@ -597,6 +597,114 @@
       font-size: 0.9rem; color: var(--text-muted); margin-bottom: 28px;
     }
 
+    /* NOTES */
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .note-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      cursor: pointer;
+      transition: all 0.2s var(--ease);
+      position: relative;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .note-card:hover {
+      border-color: rgba(245,158,11,0.4);
+      background: rgba(255,255,255,0.05);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+    .note-card:active { transform: scale(0.985); }
+    .note-card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+      padding-right: 28px;
+      word-break: break-word;
+    }
+    .note-card-preview {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      flex: 1;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      white-space: pre-wrap;
+    }
+    .note-card-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+    .note-card-delete {
+      position: absolute;
+      top: 12px;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 4px;
+      opacity: 0.7;
+      transition: color 0.2s, opacity 0.2s;
+    }
+    .note-card-delete:hover { color: var(--red); opacity: 1; }
+    .note-editor-title {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1.25rem;
+      font-weight: 600;
+      outline: none;
+      margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    .note-editor-title:focus { border-color: var(--orange); }
+    .note-editor-title::placeholder { color: var(--text-muted); font-weight: 500; }
+    .note-editor-content {
+      width: 100%;
+      min-height: 420px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      line-height: 1.65;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .note-editor-content:focus { border-color: var(--orange); }
+    .note-editor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
     /* MOBILE */
     .mobile-toggle {
       display: none; position: fixed; top: 16px; left: 16px; z-index: 200;
@@ -677,6 +785,7 @@
         <button class="nav-item" data-view="habits"><span class="icon">🔥</span> Habitudes</button>
         <button class="nav-item" data-view="deepwork"><span class="icon">⏱️</span> DeepWork</button>
         <button class="nav-item" data-view="journal"><span class="icon">📔</span> Journal</button>
+        <button class="nav-item" data-view="notes"><span class="icon">📝</span> Notes</button>
         <button class="nav-item" data-view="stats"><span class="icon">📈</span> Statistiques</button>
         <button class="nav-item" data-view="profile"><span class="icon">🧬</span> Profil personnel</button>
       </nav>
@@ -886,6 +995,36 @@
             <div class="card-title"><span class="dot" style="background:var(--orange)"></span> Entrées précédentes</div>
           </div>
           <div id="journalHistory"></div>
+        </div>
+      </div>
+
+      <!-- NOTES -->
+      <div class="view" id="view-notes">
+        <div class="topbar">
+          <div class="date-greeting">
+            <div class="date">Tes notes permanentes</div>
+            <div class="greeting">Notes</div>
+          </div>
+          <button class="btn btn-primary" id="btnAddNote">+ Nouvelle note</button>
+        </div>
+
+        <div id="notesListContainer">
+          <div class="notes-grid" id="notesGrid"></div>
+          <div class="empty-state" id="notesEmpty" style="display:none;">Aucune note pour l'instant. Crée-en une !</div>
+        </div>
+
+        <div id="noteEditor" style="display:none;">
+          <div class="card">
+            <div class="note-editor-header">
+              <button class="btn btn-ghost btn-sm" id="noteEditorBack">← Retour aux notes</button>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn btn-danger btn-sm" id="noteEditorDelete" style="display:none;">Supprimer</button>
+                <button class="btn btn-primary btn-sm" id="noteEditorSave">Sauvegarder</button>
+              </div>
+            </div>
+            <input type="text" class="note-editor-title" id="noteTitle" placeholder="Titre de la note" maxlength="120">
+            <textarea class="note-editor-content" id="noteContent" placeholder="Écris librement ici… idées, listes, rappels, ce que tu veux."></textarea>
+          </div>
         </div>
       </div>
 
@@ -1116,6 +1255,7 @@
         { id: 1, name: '[habitudes à définir]', icon: '💻', streak: 0, doneToday: false }
       ],
       journal: {},
+      notes: [],
       activity: [0, 0, 0, 0, 0, 0, 0],
       categories: [
         {
@@ -1297,6 +1437,8 @@
       else if (!Array.isArray(d.categories)) d.categories = [];
       if (Array.isArray(imported?.activity)) d.activity = imported.activity;
       else if (!Array.isArray(d.activity)) d.activity = [0,0,0,0,0,0,0];
+      if (Array.isArray(imported?.notes)) d.notes = imported.notes;
+      else if (!Array.isArray(d.notes)) d.notes = [];
       if (!d.journal) d.journal = {};
       if (!d.mainQuest) d.mainQuest = DEFAULT.mainQuest;
       if (!d.sessionDay) d.sessionDay = d.lastActive || new Date().toDateString();
@@ -1502,6 +1644,7 @@
       renderStatsView();
       renderProfile();
       renderJournalHistory();
+      renderNotes();
     }
 
     function renderJournalHistory() {
@@ -1530,6 +1673,133 @@
           '<div style="font-size:0.9rem; line-height:1.6; color:var(--text); white-space:pre-wrap;">' + esc(txt) + '</div>' +
           '</div>';
       }).join('');
+    }
+
+    let currentNoteId = null;
+
+    function formatNoteDate(ts) {
+      if (!ts) return '';
+      try {
+        const d = new Date(ts);
+        if (isNaN(d.getTime())) return '';
+        const now = new Date();
+        if (d.toDateString() === now.toDateString()) {
+          return "Aujourd'hui · " + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        }
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        if (d.toDateString() === yesterday.toDateString()) {
+          return 'Hier · ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        }
+        return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+      } catch (e) { return ''; }
+    }
+
+    function renderNotes() {
+      const grid = document.getElementById('notesGrid');
+      const empty = document.getElementById('notesEmpty');
+      if (!grid) return;
+      if (!data.notes) data.notes = [];
+      const sorted = [...data.notes].sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+      if (sorted.length === 0) {
+        grid.innerHTML = '';
+        if (empty) empty.style.display = 'block';
+      } else {
+        if (empty) empty.style.display = 'none';
+        grid.innerHTML = sorted.map(n => {
+          const preview = (n.content || '').trim().slice(0, 160) || 'Note vide';
+          const title = (n.title || '').trim() || 'Sans titre';
+          return '<div class="note-card" data-note-id="' + n.id + '">' +
+            '<button class="note-card-delete" data-delete-note="' + n.id + '" title="Supprimer">🗑️</button>' +
+            '<div class="note-card-title">' + esc(title) + '</div>' +
+            '<div class="note-card-preview">' + esc(preview) + '</div>' +
+            '<div class="note-card-meta"><span>' + formatNoteDate(n.updatedAt || n.createdAt) + '</span></div>' +
+            '</div>';
+        }).join('');
+      }
+    }
+
+    function openNoteEditor(noteId) {
+      currentNoteId = noteId == null ? null : noteId;
+      const listContainer = document.getElementById('notesListContainer');
+      const editor = document.getElementById('noteEditor');
+      const titleInput = document.getElementById('noteTitle');
+      const contentInput = document.getElementById('noteContent');
+      const deleteBtn = document.getElementById('noteEditorDelete');
+      const addBtn = document.getElementById('btnAddNote');
+      if (listContainer) listContainer.style.display = 'none';
+      if (editor) editor.style.display = 'block';
+      if (addBtn) addBtn.style.display = 'none';
+      if (noteId) {
+        const note = (data.notes || []).find(n => n.id === noteId);
+        titleInput.value = note ? (note.title || '') : '';
+        contentInput.value = note ? (note.content || '') : '';
+        if (deleteBtn) deleteBtn.style.display = note ? 'inline-flex' : 'none';
+      } else {
+        titleInput.value = '';
+        contentInput.value = '';
+        if (deleteBtn) deleteBtn.style.display = 'none';
+      }
+      setTimeout(() => titleInput && titleInput.focus(), 80);
+    }
+
+    function closeNoteEditor() {
+      currentNoteId = null;
+      const listContainer = document.getElementById('notesListContainer');
+      const editor = document.getElementById('noteEditor');
+      const addBtn = document.getElementById('btnAddNote');
+      if (listContainer) listContainer.style.display = 'block';
+      if (editor) editor.style.display = 'none';
+      if (addBtn) addBtn.style.display = 'inline-flex';
+      renderNotes();
+    }
+
+    function saveCurrentNote() {
+      const title = document.getElementById('noteTitle').value.trim();
+      const content = document.getElementById('noteContent').value;
+      if (!title && !String(content || '').trim()) {
+        showToast('❌', 'Écris au moins un titre ou du contenu');
+        return;
+      }
+      const now = Date.now();
+      if (!data.notes) data.notes = [];
+      if (currentNoteId) {
+        const note = data.notes.find(n => n.id === currentNoteId);
+        if (note) {
+          note.title = title || 'Sans titre';
+          note.content = content;
+          note.updatedAt = now;
+        }
+        showToast('📝', 'Note mise à jour');
+      } else {
+        data.notes.push({
+          id: now,
+          title: title || 'Sans titre',
+          content: content,
+          createdAt: now,
+          updatedAt: now
+        });
+        showToast('📝', 'Note créée !');
+      }
+      saveData();
+      closeNoteEditor();
+    }
+
+    function deleteCurrentNote() {
+      if (!currentNoteId) return;
+      if (!confirm('Supprimer définitivement cette note ?')) return;
+      data.notes = (data.notes || []).filter(n => n.id !== currentNoteId);
+      saveData();
+      closeNoteEditor();
+      showToast('🗑️', 'Note supprimée');
+    }
+
+    function deleteNoteById(id) {
+      if (!confirm('Supprimer définitivement cette note ?')) return;
+      data.notes = (data.notes || []).filter(n => n.id !== id);
+      saveData();
+      renderNotes();
+      showToast('🗑️', 'Note supprimée');
     }
 
     function renderHeader() {
@@ -2459,12 +2729,21 @@
           renderJournalHistory();
         }
         if (btn.dataset.view === 'deepwork') updateDeepworkLabels();
+        if (btn.dataset.view === 'notes') {
+          closeNoteEditor();
+          renderNotes();
+        }
       });
     });
 
     document.getElementById('btnAddCategory').addEventListener('click', () => {
       openModal('category', 'Nouvelle catégorie');
     });
+
+    document.getElementById('btnAddNote').addEventListener('click', () => openNoteEditor(null));
+    document.getElementById('noteEditorBack').addEventListener('click', closeNoteEditor);
+    document.getElementById('noteEditorSave').addEventListener('click', saveCurrentNote);
+    document.getElementById('noteEditorDelete').addEventListener('click', deleteCurrentNote);
 
     document.getElementById('btnExport').addEventListener('click', exportData);
     document.getElementById('btnImport').addEventListener('click', () => {
@@ -2559,6 +2838,18 @@
         saveData();
         renderAll();
         showToast('🗑️', 'Quête globale supprimée');
+        return;
+      }
+
+      const delNote = e.target.closest('[data-delete-note]');
+      if (delNote) {
+        e.stopPropagation();
+        deleteNoteById(parseInt(delNote.dataset.deleteNote));
+        return;
+      }
+      const noteCard = e.target.closest('.note-card');
+      if (noteCard && !e.target.closest('.note-card-delete')) {
+        openNoteEditor(parseInt(noteCard.dataset.noteId));
         return;
       }
     });
