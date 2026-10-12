@@ -2044,6 +2044,7 @@
               <div class="cat-name">${cat.icon || '📌'} ${esc(cat.name)}</div>
               <div style="display:flex;align-items:center;gap:8px;">
                 <span class="cat-pct">${pct}%</span>
+                <button class="obj-btn" data-reset-cat="${cat.id}" title="Remettre les objectifs à 0" style="font-size:1.1rem;font-weight:700;opacity:1;">↺</button>
                 <button class="obj-btn" data-edit-cat="${cat.id}" title="Modifier">✏️</button>
                 <button class="obj-btn danger" data-del-cat="${cat.id}" title="Supprimer">🗑️</button>
               </div>
@@ -2790,6 +2791,23 @@
       const addObj = e.target.closest('[data-add-obj]');
       if (addObj) {
         openModal('objective', 'Nouvel objectif', { catId: parseInt(addObj.dataset.addObj) });
+        return;
+      }
+      const resetCat = e.target.closest('[data-reset-cat]');
+      if (resetCat) {
+        e.stopPropagation();
+        const catId = parseInt(resetCat.dataset.resetCat, 10);
+        const cat = (data.categories || []).find(c => c.id === catId || String(c.id) === String(catId));
+        if (cat && Array.isArray(cat.objectives) && cat.objectives.length) {
+          if (confirm('Remettre à 0 tous les objectifs de « ' + cat.name + ' » ?\n(noms, cibles et unités conservés)')) {
+            cat.objectives.forEach(o => { o.current = 0; });
+            saveData();
+            renderAll();
+            showToast('↺', 'Objectifs de « ' + cat.name + ' » remis à 0');
+          }
+        } else {
+          showToast('↺', 'Aucun objectif à réinitialiser');
+        }
         return;
       }
       const editCat = e.target.closest('[data-edit-cat]');
